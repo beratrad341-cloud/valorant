@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valorant - Kayıt Ol</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Tungsten-style / DIN / Mark Pro style fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        valorant: {
+                            red: '#FF4655',
+                            darkRed: '#D1363A',
+                            black: '#0F1923',
+                            gray: '#1F2326',
+                            lightGray: '#ECE8E1',
+                            cardBg: '#F9F9F9',
+                            border: '#E2E2E2'
+                        }
+                    },
+                    fontFamily: {
+                        valorant: ['Teko', 'sans-serif'],
+                        body: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbar and animations */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F1923;
+            color: #111827;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Tactical Background Canvas Animation styling */
+        .bg-valorant-pattern {
+            background-color: #0d131a;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(255, 70, 85, 0.08) 0%, transparent 60%),
+                linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        /* Floating Input Styling matching Riot Games UI */
+        .riot-input-group {
+            position: relative;
+            background-color: #EDEDED;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .riot-input-group:focus-within {
+            background-color: #FFFFFF;
+            border-color: #111827;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .riot-input-group.error {
+            border-color: #FF4655;
+            background-color: #FFF5F5;
+        }
+
+        .riot-input {
+            width: 100%;
+            padding: 22px 16px 8px 16px;
+            background: transparent;
+            outline: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #111827;
+        }
+
+        .riot-label {
+            position: absolute;
+            left: 16px;
+            top: 6px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: #7E7E7E;
+            text-transform: uppercase;
+            pointer-events: none;
+            transition: all 0.2s ease;
+        }
+
+        /* Custom checkmark list styles */
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #6B7280;
+            transition: color 0.2s ease;
+        }
+
+        .check-item.valid {
+            color: #059669;
+        }
+
+        .check-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #E5E7EB;
+            color: #9CA3AF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .check-item.valid .check-icon {
+            background-color: #10B981;
+            color: #FFFFFF;
+        }
+
+        /* Large Red Action Button */
+        .riot-btn {
+            background-color: #FF4655;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .riot-btn:hover {
+            background-color: #0F1923;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .riot-btn:active {
+            transform: translateY(0);
+        }
+
+        .riot-btn:disabled {
+            background-color: #E5E7EB;
+            color: #9CA3AF;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Decorative geometric banner overlay */
+        .val-logo-text {
+            font-family: 'Teko', sans-serif;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #FFFFFF 0%, #A0A0A0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Pulse animation for strength indicator */
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .pulse {
+            animation: pulse-subtle 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-valorant-pattern flex items-center justify-center p-4 min-h-screen relative">
+
+    <!-- Tactical Grid & Corner Decorations -->
+    <div class="absolute top-6 left-6 text-xs text-gray-500 tracking-widest font-mono hidden md:block select-none">
+        // VALORANT REGISTRATION SYSTEM <br>
+        <span class="text-red-500">SYS_VER: 8.11 // RIOT_SECURED</span>
+    </div>
+
+    <div class="absolute bottom-6 right-6 text-xs text-gray-500 tracking-widest font-mono hidden md:block select-none text-right">
+        BUILD // 2026.10.02<br>
+        <span class="text-gray-400">RIOT GAMES REGISTRATION INTERFACE</span>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="w-full max-w-5xl bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[680px]">
+
+        <!-- LEFT SIDE: VALORANT BRANDING DISPLAY -->
+        <div class="lg:col-span-6 bg-gradient-to-br from-black via-gray-900 to-black p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-white/10">
+            <!-- Background Watermark SVG -->
+            <div class="absolute -right-20 -bottom-20 opacity-10 pointer-events-none">
+                <svg width="400" height="400" viewBox="0 0 100 100" fill="white">
+                    <path d="M10 20 L40 20 L60 80 L30 80 Z" />
+                    <path d="M50 20 L90 20 L70 80 L50 80 Z" />
+                </svg>
+            </div>
+
+            <!-- Header logo -->
+            <div class="flex items-center gap-3 z-10">
+                <div class="w-10 h-10 bg-valorant-red flex items-center justify-center rounded-lg shadow-lg">
+                    <i class="fa-solid font-bold text-white text-xl">V</i>
+                </div>
+                <span class="text-white font-bold tracking-widest text-lg font-body">RIOT GAMES</span>
+            </div>
+
+            <!-- Central Valorant Graphic Banner -->
+            <div class="my-auto py-12 text-center z-10">
+                <!-- VALORANT Geometric Graphic Logo Replica -->
+                <div class="relative inline-block mb-6">
+                    <div class="text-6xl sm:text-7xl lg:text-8xl font-bold val-logo-text tracking-widest drop-shadow-2xl">
+                        VALORANT
+                    </div>
+                    <div class="flex justify-center items-center gap-2 mt-2">
+                        <span class="h-[2px] w-12 bg-valorant-red inline-block"></span>
+                        <span class="text-valorant-red text-xs font-mono tracking-widest">DEFINING THE FUTURE</span>
+                        <span class="h-[2px] w-12 bg-valorant-red inline-block"></span>
+                    </div>
+                </div>
+                <p class="text-gray-400 text-sm max-w-sm mx-auto font-body leading-relaxed">
+                    Karakter tabanlı 5v5 taktiki nişancılık oyunu. Kendi tarzını yarat, rakiplerini alt et.
+                </p>
+            </div>
+
+            <!-- Footer links inside left panel -->
+            <div class="z-10 flex items-center justify-between text-xs text-gray-500">
+                <span>© 2026 Riot Games, Inc.</span>
+                <div class="flex gap-4">
+                    <a href="#" class="hover:text-valorant-red transition-colors">Gizlilik</a>
+                    <a href="#" class="hover:text-valorant-red transition-colors">Hizmet Şartları</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: FORM CARD (Matching user's screenshot requirements) -->
+        <div class="lg:col-span-6 bg-white p-8 lg:p-12 flex flex-col justify-between">
+            <div class="max-w-md mx-auto w-full">
+                
+                <!-- Title & Subtitle -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight font-body mb-2">
+                        Şifre seç
+                    </h1>
+                    <p class="text-gray-600 text-sm font-medium">
+                        Kuvvetli bir şifre seçtiğinden emin ol.
+                    </p>
+                </div>
+
+                <!-- Registration Form -->
+                <form id="registerForm" onsubmit="handleFormSubmit(event)" class="space-y-4" novalidate>
+                    
+                    <!-- USERNAME INPUT -->
+                    <div class="riot-input-group" id="usernameGroup">
+                        <label for="username" class="riot-label">KULLANICI ADI</label>
+                        <input type="text" id="username" class="riot-input" placeholder="Oyuncu Adı" required autocomplete="off">
+                    </div>
+
+                    <!-- EMAIL INPUT -->
+                    <div class="riot-input-group" id="emailGroup">
+                        <label for="email" class="riot-label">E-POSTA</label>
+                        <input type="email" id="email" class="riot-input" placeholder="ornek@riotgames.com" required autocomplete="off">
+                    </div>
+
+                    <!-- PASSWORD INPUT -->
+                    <div class="riot-input-group" id="passwordGroup">
+                        <label for="password" class="riot-label">ŞİFRE</label>
+                        <div class="relative">
+                            <input type="password" id="password" class="riot-input pr-10" placeholder="••••••••••••" required>
+                            <button type="button" onclick="togglePasswordVisibility('password', 'eyeIcon1')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                <i id="eyeIcon1" class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- LIVE PASSWORD STRENGTH DISPLAY & CHECKLIST -->
+                    <div class="py-2 space-y-2.5">
+                        <!-- Strength Level Badge -->
+                        <div class="flex items-center justify-between">
+                            <span id="strengthLabel" class="text-sm font-bold text-amber-500 transition-colors">
+                                Zayıf
+                            </span>
+                        </div>
+
+                        <!-- Requirements Checklist identical to Image 2 -->
+                        <div class="space-y-2 pt-1">
+                            
+                            <!-- Rule 1: Overall strength requirement -->
+                            <div class="check-item" id="ruleStrength">
+                                <div class="check-icon"><i class="fa-solid fa-check"></i></div>
+                                <span>Güvenlik düzeyi iyi veya daha yüksek olmalı.</span>
+                            </div>
+
+                            <!-- Rule 2: Minimum 8 characters -->
+                            <div class="check-item" id="ruleLength">
+                                <div class="check-icon"><i class="fa-solid fa-check"></i></div>
+                                <span>Şifre en az 8 karakter uzunluğunda.</span>
+                            </div>
+
+                            <!-- Rule 3: Contains letter or number -->
+                            <div class="check-item" id="ruleLetterOrNum">
+                                <div class="check-icon"><i class="fa-solid fa-check"></i></div>
+                                <span>Şifre en az bir harf veya sayı içeriyor.</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- CONFIRM PASSWORD INPUT -->
+                    <div class="riot-input-group" id="confirmPasswordGroup">
+                        <label for="confirmPassword" class="riot-label">ŞİFREYİ ONAYLA</label>
+                        <div class="relative">
+                            <input type="password" id="confirmPassword" class="riot-input pr-10" placeholder="••••••••••••" required>
+                            <button type="button" onclick="togglePasswordVisibility('confirmPassword', 'eyeIcon2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                <i id="eyeIcon2" class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Error Notice Message Box -->
+                    <div id="formErrorMessage" class="hidden text-xs text-red-500 font-semibold bg-red-50 border border-red-200 p-3 rounded text-center">
+                        Lütfen tüm alanları doğru şekilde doldurunuz.
+                    </div>
+
+                    <!-- ACTION BUTTON (Large Red Button with Arrow) -->
+                    <div class="pt-6 flex justify-center">
+                        <button type="submit" id="submitBtn" class="riot-btn w-20 h-20 rounded-3xl flex items-center justify-center text-white text-2xl shadow-lg focus:outline-none focus:ring-4 focus:ring-red-300">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                </form>
+
+                <!-- Footer link to Login -->
+                <div class="text-center mt-8 pt-4 border-t border-gray-100">
+                    <p class="text-xs text-gray-500 font-medium">
+                        ZATEN BİR HESABIN VAR MI? 
+                        <a href="#" onclick="alert('Giriş sayfasına yönlendiriliyorsunuz.')" class="text-valorant-red font-bold hover:underline ml-1">GİRİŞ YAP</a>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SUCCESS MODAL DIALOG -->
+    <div id="successModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-8 text-center shadow-2xl border-t-8 border-valorant-red transform transition-all scale-95 opacity-0" id="modalCard">
+            <div class="w-16 h-16 bg-red-100 text-valorant-red rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 class="text-2xl font-black text-gray-900 mb-2 font-body tracking-tight">KAYIT BAŞARILI!</h3>
+            <p class="text-gray-600 text-sm mb-6">
+                Riot Games hesabınız başarıyla oluşturuldu. Valorant dünyasına hoş geldiniz Agent!
+            </p>
+            <button onclick="closeModal()" class="w-full bg-valorant-black text-white py-3 rounded-xl font-bold hover:bg-valorant-red transition-colors">
+                OYUNA BAŞLA
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // DOM Elements
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        
+        const ruleStrength = document.getElementById('ruleStrength');
+        const ruleLength = document.getElementById('ruleLength');
+        const ruleLetterOrNum = document.getElementById('ruleLetterOrNum');
+        const strengthLabel = document.getElementById('strengthLabel');
+        const formErrorMessage = document.getElementById('formErrorMessage');
+
+        // Toggle Password Visibility
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Real-Time Password Validation Logic
+        function validatePassword() {
+            const pass = passwordInput.value;
+
+            // Condition 1: Minimum 8 characters
+            const isLengthValid = pass.length >= 8;
+            updateRuleUI(ruleLength, isLengthValid);
+
+            // Condition 2: Contains letter or number
+            const hasLetterOrNumber = /[a-zA-Z0-9]/.test(pass);
+            const isLetterOrNumValid = pass.length > 0 && hasLetterOrNumber;
+            updateRuleUI(ruleLetterOrNum, isLetterOrNumValid);
+
+            // Condition 3: Overall Strength calculation (Needs length >= 8, mixed characters, uppercase/special)
+            let score = 0;
+            if (pass.length >= 8) score++;
+            if (/[A-Z]/.test(pass) && /[a-z]/.test(pass)) score++;
+            if (/[0-9]/.test(pass)) score++;
+            if (/[^a-zA-Z0-9]/.test(pass)) score++;
+
+            let isStrengthGood = false;
+
+            if (pass.length === 0) {
+                strengthLabel.textContent = 'Zayıf';
+                strengthLabel.className = 'text-sm font-bold text-gray-400';
+            } else if (score < 2 || pass.length < 8) {
+                strengthLabel.textContent = 'Zayıf';
+                strengthLabel.className = 'text-sm font-bold text-red-500';
+            } else if (score === 2) {
+                strengthLabel.textContent = 'Orta';
+                strengthLabel.className = 'text-sm font-bold text-amber-500';
+            } else {
+                strengthLabel.textContent = 'İyi';
+                strengthLabel.className = 'text-sm font-bold text-emerald-600';
+                isStrengthGood = true;
+            }
+
+            updateRuleUI(ruleStrength, isStrengthGood);
+
+            return isLengthValid && isLetterOrNumValid && isStrengthGood;
+        }
+
+        // Helper function to toggle green checkmark state
+        function updateRuleUI(element, isValid) {
+            if (isValid) {
+                element.classList.add('valid');
+            } else {
+                element.classList.remove('valid');
+            }
+        }
+
+        // Input Field Listeners for dynamic validation
+        passwordInput.addEventListener('input', () => {
+            validatePassword();
+            checkConfirmPasswordMatch();
+        });
+
+        confirmPasswordInput.addEventListener('input', checkConfirmPasswordMatch);
+
+        function checkConfirmPasswordMatch() {
+            const pass = passwordInput.value;
+            const confirmPass = confirmPasswordInput.value;
+            const confirmGroup = document.getElementById('confirmPasswordGroup');
+
+            if (confirmPass.length > 0) {
+                if (pass !== confirmPass) {
+                    confirmGroup.classList.add('error');
+                } else {
+                    confirmGroup.classList.remove('error');
+                }
+            } else {
+                confirmGroup.classList.remove('error');
+            }
+        }
+
+        // Form Submit Handler
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const isPasswordValid = validatePassword();
+            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
+            const pass = passwordInput.value;
+            const confirmPass = confirmPasswordInput.value;
+
+            let hasError = false;
+
+            // Basic empty check
+            if (!username) {
+                document.getElementById('usernameGroup').classList.add('error');
+                hasError = true;
+            } else {
+                document.getElementById('usernameGroup').classList.remove('error');
+            }
+
+            if (!email || !email.includes('@')) {
+                document.getElementById('emailGroup').classList.add('error');
+                hasError = true;
+            } else {
+                document.getElementById('emailGroup').classList.remove('error');
+            }
+
+            if (!isPasswordValid) {
+                document.getElementById('passwordGroup').classList.add('error');
+                hasError = true;
+            } else {
+                document.getElementById('passwordGroup').classList.remove('error');
+            }
+
+            if (!confirmPass || pass !== confirmPass) {
+                document.getElementById('confirmPasswordGroup').classList.add('error');
+                hasError = true;
+            } else {
+                document.getElementById('confirmPasswordGroup').classList.remove('error');
+            }
+
+            if (hasError) {
+                formErrorMessage.classList.remove('hidden');
+                return;
+            }
+
+            formErrorMessage.classList.add('hidden');
+            
+            // Show Success Modal
+            const modal = document.getElementById('successModal');
+            const modalCard = document.getElementById('modalCard');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalCard.classList.remove('scale-95', 'opacity-0');
+                modalCard.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('successModal');
+            modal.classList.add('hidden');
+            // Reset form
+            document.getElementById('registerForm').reset();
+            validatePassword();
+        }
+    </script>
+</body>
+</html>
